@@ -85,6 +85,9 @@ func Dial(addr string, opts ...ConnOption) (*Client, error) {
 		return nil, err
 	}
 	err = c.start()
+	if err != nil {
+		c.close()
+	}
 	return &Client{conn: c}, err
 }
 
@@ -822,7 +825,9 @@ const (
 // linkKey uniquely identifies a link on a connection by name and direction.
 //
 // A link can be identified uniquely by the ordered tuple
-//     (source-container-id, target-container-id, name)
+//
+//	(source-container-id, target-container-id, name)
+//
 // On a single connection the container ID pairs can be abbreviated
 // to a boolean flag indicating the direction of the link.
 type linkKey struct {
@@ -1728,14 +1733,18 @@ func LinkSelectorFilter(filter string) LinkOption {
 // Example:
 //
 // The standard selector-filter is defined as:
-//  <descriptor name="apache.org:selector-filter:string" code="0x0000468C:0x00000004"/>
+//
+//	<descriptor name="apache.org:selector-filter:string" code="0x0000468C:0x00000004"/>
+//
 // In this case the name is "apache.org:selector-filter:string" and the code is
 // 0x0000468C00000004.
-//  LinkSourceFilter("apache.org:selector-filter:string", 0x0000468C00000004, exampleValue)
+//
+//	LinkSourceFilter("apache.org:selector-filter:string", 0x0000468C00000004, exampleValue)
 //
 // References:
-//  http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-filter-set
-//  http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-types-v1.0-os.html#section-descriptor-values
+//
+//	http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-filter-set
+//	http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-types-v1.0-os.html#section-descriptor-values
 func LinkSourceFilter(name string, code uint64, value interface{}) LinkOption {
 	return func(l *link) error {
 		if l.source == nil {
